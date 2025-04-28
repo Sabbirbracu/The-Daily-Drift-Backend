@@ -1,13 +1,8 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const rateLimit = require("express-rate-limit");
-const authRoutes = require("./routes/auth");
-const userRoutes = require("./routes/users");
-const postRoutes = require("./routes/posts");
-const commentRoutes = require("./routes/comments");
-const analyticRoutes = require("./routes/analytics");
-const adminRoutes = require("./routes/admin");
+const { connectDB } = require("./db");
+const rootRouter = require("./routes/rootRouter");
 
 dotenv.config();
 
@@ -27,25 +22,12 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/posts", postRoutes);
-app.use("/api/comments", commentRoutes);
-app.use("/api/analytics", analyticRoutes);
-app.use("/api/admin", adminRoutes);
-
 if (!process.env.MONGO_URI) {
   console.error("Error: MONGO_URI is not defined in .env file");
   process.exit(1);
 }
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((error) => {
-    console.error("MongoDB connection error:", error.message);
-    process.exit(1);
-  });
+rootRouter(app);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
