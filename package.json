@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.16.0",
+    "mongoose": "^8.14.0",
+    "nodemon": "^3.1.10"
+  },
+  "name": "the-daily-drift",
+  "version": "1.0.0",
+  "description": "The Daily Drift Blog",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon sever.js",
+    "prod": "NODE_ENV = production node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
