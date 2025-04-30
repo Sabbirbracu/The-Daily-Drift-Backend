@@ -3,6 +3,7 @@ const router = express.Router();
 const Analytic = require("../models/Analytic");
 const auth = require("../middleware/auth");
 const { closeDB, connectDB } = require("../db");
+const Post = require("../models/Post");
 
 // Get post analytics
 router.get("/post/:postId", auth(), async (req, res) => {
