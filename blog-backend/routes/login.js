@@ -11,13 +11,13 @@ router.post("/", async (req, res) => {
     await connectDB(process.env.MONGO_URI);
     const user = await User.findOne({ email });
     if (!user) {
-      res.json({
+      return res.json({
         message: "no user found!",
       });
     }
     const isPassMatch = await bcrypt.compare(password, user.password);
     if (!isPassMatch) {
-      res.json({
+      return res.json({
         message: "invalid credintial!",
       });
     }
