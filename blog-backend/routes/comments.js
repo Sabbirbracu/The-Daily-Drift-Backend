@@ -57,5 +57,4 @@ router.delete("/:id", auth(), async (req, res) => {
     closeDB();
   }
 });
-
 module.exports = router;

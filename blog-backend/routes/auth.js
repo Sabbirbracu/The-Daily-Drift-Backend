@@ -10,8 +10,7 @@ router.post("/register", async (req, res) => {
   try {
     await connectDB(process.env.MONGO_URI);
     const { email, password, name } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ email, password: hashedPassword, name });
+    const user = new User({ email, password, name });
     await user.save();
     res.status(201).json({ message: "User registered. Please verify email." });
   } catch (error) {
@@ -50,7 +49,10 @@ router.post("/login", async (req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
-    res.json({ token, user: { id: user._id, email, name, role: user.role } });
+    res.json({
+      token,
+      user: { id: user._id, email, name: user.name, role: user.role },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   } finally {
