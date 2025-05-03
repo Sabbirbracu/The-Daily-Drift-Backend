@@ -35,11 +35,48 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+    const refreshToken = await jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "30d",
+      }
+    );
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
     res.json({ token, user: { id: user._id, email, name, role: user.role } });
   } catch (error) {
     res.status(500).json({ message: error.message });
   } finally {
     closeDB();
+  }
+});
+
+router.get("/access-token", async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken)
+      return res.json({
+        message: "no refresh token found! please login again",
+      });
+    const user = await jwt.verify(refreshToken, process.env.JWT_SECRET);
+    const acessToken = await jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    res.json({ message: "acess token created successfully", acessToken });
+  } catch (error) {
+    console.log(error);
+    res.json({
+      message: "can not get acess token, something went wrong!",
+    });
   }
 });
 

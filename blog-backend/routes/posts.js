@@ -6,7 +6,7 @@ const auth = require("../middleware/auth");
 const { connectDB, closeDB } = require("../db");
 
 // Create a post
-router.post("/", auth(), async (req, res) => {
+router.post("/", auth(["user", "admin"]), async (req, res) => {
   try {
     await connectDB(process.env.MONGO_URI);
     const post = new Post({ ...req.body, author: req.user.id });
