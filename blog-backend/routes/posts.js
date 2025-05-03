@@ -20,7 +20,7 @@ router.post("/", auth(["user", "admin"]), async (req, res) => {
   }
 });
 
-// Get all posts
+// Get all postsp
 router.get("/", async (req, res) => {
   try {
     await connectDB(process.env.MONGO_URI);
