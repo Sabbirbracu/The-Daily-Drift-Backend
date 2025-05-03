@@ -6,6 +6,7 @@ const auth = (roles = []) => {
     if (!token) return res.status(401).json({ message: "No token provided" });
 
     try {
+      console.log(process.env.JWT_SECRET, "jwt secret");
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = decoded;
       if (roles.length && !roles.includes(decoded.role)) {
@@ -13,6 +14,7 @@ const auth = (roles = []) => {
       }
       next();
     } catch (error) {
+      console.log(error);
       res.status(401).json({ message: "Invalid token" });
     }
   };
