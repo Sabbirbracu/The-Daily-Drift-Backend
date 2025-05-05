@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const rootRouter = require("./routes/rootRouter");
+const cors = require("cors");
 
 dotenv.config();
 
@@ -15,6 +16,12 @@ const app = express();
 app.use(express.json());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 app.use(cookieParser());
+app.use(
+  cors({
+    origin: process.env.FRONTEND,
+    credentials: true,
+  })
+);
 
 app.get("/", (req, res) => {
   res.json({
