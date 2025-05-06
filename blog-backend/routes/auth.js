@@ -9,6 +9,7 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   try {
     await connectDB(process.env.MONGO_URI);
+    console.log("Connected to MongoDB");
     const { email, password, name } = req.body;
     const user = new User({ email, password, name });
     await user.save();
