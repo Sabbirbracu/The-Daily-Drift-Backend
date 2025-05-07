@@ -14,8 +14,12 @@ const rootRouter = (app) => {
   app.use("/api/comments", commentRoutes);
   app.use("/api/analytics", analyticRoutes);
   app.use("/api/admin", adminRoutes);
+
+  app.use("/api/newsletter", newsletterRoutes);
+
   app.use("/api/admin/stats", adminStatsRoutes);
   app.use("/api/newsletter", newsletterRoutes); 
+
 };
 
 module.exports = rootRouter;
