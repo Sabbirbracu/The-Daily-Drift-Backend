@@ -11,7 +11,6 @@ async function seed() {
   await mongoose.connect(process.env.MONGO_URI);
   console.log("📡 Connected to DB");
 
-  // Clear existing data
   await Promise.all([
     User.deleteMany({}),
     Post.deleteMany({}),
@@ -19,7 +18,6 @@ async function seed() {
     Analytic.deleteMany({}),
   ]);
 
-  // Create users
   const users = await User.insertMany([
     { name: "Samiha Khan", email: "samiha@example.com", password: "pass123" },
     { name: "Tanvir Rahman", email: "tanvir@example.com", password: "pass123" },
@@ -27,76 +25,87 @@ async function seed() {
     { name: "Nabila Chowdhury", email: "nabila@example.com", password: "pass123" },
   ]);
 
-  // Create posts
-  const posts = await Post.insertMany([
-    {
-      title: "The Future of AI in Everyday Life",
-      content: "Artificial Intelligence is rapidly becoming integrated into our daily routines. From smart assistants to self-driving cars, AI is not just the future—it’s already here. In this post, we explore how it's shaping industries like healthcare, education, and even entertainment.",
-      author: users[0]._id,
-    },
-    {
-      title: "Breaking News: Global Climate Agreement Reached",
-      content: "World leaders have signed a historic climate accord to limit global warming to 1.5°C. This agreement marks a pivotal moment in the fight against climate change, with countries committing to major emissions cuts and clean energy transitions.",
-      author: users[1]._id,
-    },
-    {
-      title: "Top 5 Hidden Gems to Visit in Southeast Asia",
-      content: "Southeast Asia is full of stunning destinations off the beaten path. In this article, we cover hidden beaches in the Philippines, serene mountains in Vietnam, and cultural gems in Laos that will elevate your travel experience.",
-      author: users[2]._id,
-    },
-    {
-      title: "Healthy Eating: 10 Superfoods to Add to Your Diet",
-      content: "Superfoods can play a crucial role in maintaining your health. From blueberries and quinoa to leafy greens and chia seeds, these nutrient-rich foods support immunity, digestion, and energy levels naturally.",
-      author: users[3]._id,
-    },
-    {
-      title: "Welcome to The Daily Drift!",
-      content: "We're excited to launch our new platform dedicated to insightful articles, diverse opinions, and community-driven content. Whether you're into tech, lifestyle, or global affairs, there's something here for everyone.",
-      author: users[0]._id,
-    },
-  ]);
+  const postsData = {
+    Travel: [
+      "Exploring the Amalfi Coast",
+      "A Solo Trip Through Patagonia",
+      "Budget Travel Tips for Europe",
+      "Top 5 Hidden Beaches in Bali",
+      "Backpacking the Himalayas",
+    ],
+    News: [
+      "Global Leaders Sign Climate Accord",
+      "Election 2025: What You Need to Know",
+      "Economic Outlook for Next Quarter",
+      "SpaceX Announces New Mission",
+      "Tech Giants Face New Regulations",
+    ],
+    Health: [
+      "10 Superfoods Backed by Science",
+      "The Mental Health Crisis Explained",
+      "Morning Routines That Improve Focus",
+      "How to Stay Fit Without a Gym",
+      "Meditation Techniques That Work",
+    ],
+    Tech: [
+      "AI Tools Changing the Workplace",
+      "Is Web3 Still Relevant?",
+      "Quantum Computing: Explained Simply",
+      "Must-Have Developer Tools in 2025",
+      "How 5G Is Shaping the Future",
+    ],
+    Food: [
+      "Homemade Pasta From Scratch",
+      "Top 10 Street Foods in Asia",
+      "What is Plant-Based Eating?",
+      "Fermented Foods and Gut Health",
+      "Easy 30-Minute Dinners",
+    ],
+  };
 
-  // Add comments
-  const comments = await Comment.insertMany([
-    {
-      content: "This was a very insightful post!",
-      author: users[1]._id,
-      post: posts[0]._id,
-    },
-    {
-      content: "Thanks for sharing the updates!",
-      author: users[2]._id,
-      post: posts[1]._id,
-    },
-    {
-      content: "Adding these spots to my bucket list!",
-      author: users[3]._id,
-      post: posts[2]._id,
-    },
-    {
-      content: "Love how concise and informative this is.",
-      author: users[0]._id,
-      post: posts[3]._id,
-    },
-    {
-      content: "Excited to be part of this new platform!",
-      author: users[2]._id,
-      post: posts[4]._id,
-    },
-  ]);
+  const posts = [];
 
-  // Add analytics
+  for (const [category, titles] of Object.entries(postsData)) {
+    titles.forEach((title) => {
+      posts.push({
+        title,
+        content: `${title} - This article explores interesting insights, tips, or news related to ${category.toLowerCase()}.`,
+        category,
+        image: `https://source.unsplash.com/800x400/?${category.toLowerCase()}`,
+        author: users[Math.floor(Math.random() * users.length)]._id,
+        isSuspended: false,
+        views: Math.floor(Math.random() * 100),
+        likes: [],
+        polls: [],
+        createdAt: new Date(),
+      });
+    });
+  }
+
+  const createdPosts = await Post.insertMany(posts);
+
+  const comments = [];
+  for (let i = 0; i < 20; i++) {
+    comments.push({
+      content: `This is comment #${i + 1}`,
+      author: users[i % users.length]._id,
+      post: createdPosts[i % createdPosts.length]._id,
+    });
+  }
+
+  const createdComments = await Comment.insertMany(comments);
+
   const analytics = await Analytic.insertMany(
-    posts.map((post, index) => ({
+    createdPosts.map((post) => ({
       post: post._id,
-      views: 100 + index * 25,
-      comments: comments.filter((c) => c.post.toString() === post._id.toString()).length,
-      likes: 10 + index * 3,
-      shares: 5 + index,
+      views: post.views,
+      comments: createdComments.filter((c) => c.post.toString() === post._id.toString()).length,
+      likes: Math.floor(Math.random() * 30),
+      shares: Math.floor(Math.random() * 10),
     }))
   );
 
-  console.log("✅ Seed data added successfully.");
+  console.log("✅ 25 posts (5 per category) seeded with users, comments, and analytics.");
   mongoose.disconnect();
 }
 
