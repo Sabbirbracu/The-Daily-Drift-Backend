@@ -35,15 +35,15 @@ router.get("/", async (req, res) => {
   }
 });
 // Get all posts by a specific user
-router.get("/user/:userId", async (req, res) => {
+router.get("/ownPost", auth(["user", "admin"]), async (req, res) => {
   try {
     await connectDB(process.env.MONGO_URI);
-    const posts = await Post.find({ author: req.params.userId }).populate(
+    const posts = await Post.find({ author: req.user._id }).populate(
       "author",
       "name"
     );
     if (posts.length === 0) {
-      return res.status(404).json({ message: "No posts found for this user" });
+      return res.json({ message: "No posts found for this user" });
     }
     res.json(posts);
   } catch (error) {
