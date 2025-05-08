@@ -4,6 +4,7 @@ const Post = require("../models/Post");
 const Analytic = require("../models/Analytic");
 const auth = require("../middleware/auth");
 const { connectDB, closeDB } = require("../db");
+const mongoose = require("mongoose");
 
 // Create a post
 router.post("/", auth(["user", "admin"]), async (req, res) => {
@@ -38,15 +39,20 @@ router.get("/", async (req, res) => {
 router.get("/ownPost", auth(["user", "admin"]), async (req, res) => {
   try {
     await connectDB(process.env.MONGO_URI);
-    const posts = await Post.find({ author: req.user._id }).populate(
+
+    const userId = req.user.id;
+    const posts = await Post.find({ author: userId }).populate(
       "author",
       "name"
     );
+
     if (posts.length === 0) {
       return res.json({ message: "No posts found for this user" });
     }
+
     res.json(posts);
   } catch (error) {
+    console.error("Error in /ownPost:", error);
     res.status(500).json({ message: error.message });
   } finally {
     closeDB();
