@@ -2,13 +2,13 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const { connectDB, closeDB } = require("../db");
+
 const router = express.Router();
 
 // Register
 router.post("/register", async (req, res) => {
   try {
-    await connectDB(process.env.MONGO_URI);
+    
     console.log("Connected to MongoDB");
     const { email, password, name } = req.body;
     const user = new User({ email, password, name });
@@ -16,15 +16,13 @@ router.post("/register", async (req, res) => {
     res.status(201).json({ message: "User registered. Please verify email." });
   } catch (error) {
     res.status(400).json({ message: error.message });
-  } finally {
-    closeDB();
-  }
+  } 
 });
 
 // Login
 router.post("/login", async (req, res) => {
   try {
-    await connectDB(process.env.MONGO_URI);
+    
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -56,9 +54,7 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
-  } finally {
-    closeDB();
-  }
+  } 
 });
 
 router.get("/access-token", async (req, res) => {

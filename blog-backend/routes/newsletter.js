@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const NewsletterSubscriber = require("../models/NewsletterSubscriber"); // Assuming the Newsletter model is defined
-const { connectDB, closeDB } = require("../db");
+const NewsletterSubscriber = require("../models/NewsletterSubscriber"); 
 
 // Subscribe to the newsletter
 router.post("/subscribe", async (req, res) => {
@@ -24,9 +23,6 @@ router.post("/subscribe", async (req, res) => {
   }
 
   try {
-    // Open the database connection
-    await connectDB(process.env.MONGO_URI);
-
     // Check if the email already exists in the database
     const existingSubscriber = await NewsletterSubscriber.findOne({ email });
     if (existingSubscriber) {
@@ -36,12 +32,11 @@ router.post("/subscribe", async (req, res) => {
       });
     }
 
-    // Create a new subscriber using the correct model
+    
     const newSubscriber = new NewsletterSubscriber({
       email,
     });
 
-    // Save the new subscriber to the database
     await newSubscriber.save();
 
     res.status(201).json({
@@ -54,10 +49,7 @@ router.post("/subscribe", async (req, res) => {
       success: false,
       message: "Server error",
     });
-  } finally {
-    // Close the database connection
-    closeDB();
-  }
+  } 
 });
 
 module.exports = router;

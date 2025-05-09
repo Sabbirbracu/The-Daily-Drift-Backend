@@ -4,12 +4,11 @@ const Post = require("../models/Post");
 const Comment = require("../models/Comment");
 const Analytic = require("../models/Analytic");
 const auth = require("../middleware/auth");
-const { connectDB, closeDB } = require("../db");
 
 // Create a comment
 router.post("/:postId", auth(), async (req, res) => {
   try {
-    await connectDB(process.env.MONGO_URI);
+    
     const { content } = req.body;
     const post = await Post.findById(req.params.postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
@@ -27,15 +26,13 @@ router.post("/:postId", auth(), async (req, res) => {
     res.status(201).json(comment);
   } catch (error) {
     res.status(400).json({ message: error.message });
-  } finally {
-    closeDB();
-  }
+  } 
 });
 
 // Delete a comment
 router.delete("/:id", auth(), async (req, res) => {
   try {
-    await connectDB(process.env.MONGO_URI);
+    
     const comment = await Comment.findById(req.params.id);
     if (!comment) return res.status(404).json({ message: "Comment not found" });
     if (
@@ -53,8 +50,6 @@ router.delete("/:id", auth(), async (req, res) => {
     res.json({ message: "Comment deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
-  } finally {
-    closeDB();
-  }
+  } 
 });
 module.exports = router;

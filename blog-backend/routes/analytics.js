@@ -8,22 +8,20 @@ const Post = require("../models/Post");
 // Get post analytics
 router.get("/post/:postId", auth(), async (req, res) => {
   try {
-    await connectDB(process.env.MONGO_URI);
+    
     const analytic = await Analytic.findOne({ post: req.params.postId });
     if (!analytic)
       return res.status(404).json({ message: "Analytics not found" });
     res.json(analytic);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  } finally {
-    closeDB();
-  }
+  } 
 });
 
 // Get user engagement metrics
 router.get("/user", auth(), async (req, res) => {
   try {
-    await connectDB(process.env.MONGO_URI);
+    
     const posts = await Post.find({ author: req.user.id });
     const analytics = await Analytic.find({
       post: { $in: posts.map((p) => p._id) },
@@ -36,9 +34,7 @@ router.get("/user", auth(), async (req, res) => {
     res.json(metrics);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  } finally {
-    closeDB();
-  }
+  } 
 });
 
 module.exports = router;

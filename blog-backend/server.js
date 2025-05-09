@@ -4,6 +4,7 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const rootRouter = require("./routes/rootRouter");
 const cors = require("cors");
+const mongoose = require("mongoose");  
 
 dotenv.config();
 
@@ -12,6 +13,18 @@ console.log("PORT:", process.env.PORT);
 console.log("JWT_SECRET:", process.env.JWT_SECRET ? "Defined" : "Undefined");
 
 const app = express();
+
+// Global MongoDB connection (this happens only once when server starts)
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected globally..."))
+  .catch((err) => {
+    console.error("Global MongoDB connection failed:", err.message);
+    process.exit(1); 
+  });
 
 app.use(express.json());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
@@ -30,11 +43,13 @@ app.get("/", (req, res) => {
   });
 });
 
+
 if (!process.env.MONGO_URI) {
   console.error("Error: MONGO_URI is not defined in .env file");
   process.exit(1);
 }
 
+// Use rootRouter (the routes should no longer need connectDB or closeDB)
 rootRouter(app);
 
 const PORT = process.env.PORT || 5000;
