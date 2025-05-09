@@ -4,7 +4,7 @@ const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 const rootRouter = require("./routes/rootRouter");
 const cors = require("cors");
-const mongoose = require("mongoose");  
+const mongoose = require("mongoose");
 
 dotenv.config();
 
@@ -16,14 +16,11 @@ const app = express();
 
 // Global MongoDB connection (this happens only once when server starts)
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected globally..."))
   .catch((err) => {
     console.error("Global MongoDB connection failed:", err.message);
-    process.exit(1); 
+    process.exit(1);
   });
 
 app.use(express.json());
@@ -42,7 +39,6 @@ app.get("/", (req, res) => {
       "Welcome to the Blog Platform API! Use /api endpoints to interact.",
   });
 });
-
 
 if (!process.env.MONGO_URI) {
   console.error("Error: MONGO_URI is not defined in .env file");
