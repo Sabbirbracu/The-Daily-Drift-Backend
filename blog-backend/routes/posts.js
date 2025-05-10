@@ -119,15 +119,24 @@ router.put("/:id", auth(["admin", "user"]), async (req, res) => {
 router.delete("/:id", auth(["admin", "user"]), async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
-    if (!post) return res.status(404).json({ message: "Post not found" });
-    if (post.author.toString() !== req.user.id && req.user.role !== "admin") {
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const isAuthor = post.author.toString() === req.user.id;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: "Access denied" });
     }
-    await post.remove();
+
+    await Post.deleteOne({ _id: post._id });
     await Analytic.deleteOne({ post: post._id });
+
     res.json({ message: "Post deleted" });
   } catch (error) {
-    res.status(500).json(error);
+    console.error("Delete error:", error);
+    res.status(500).json({ message: error.message });
   }
 });
 
