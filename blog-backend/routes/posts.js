@@ -104,7 +104,10 @@ router.put("/:id", auth(["admin", "user"]), async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
-    if (post.author.toString() !== req.user.id && req.user.role !== "admin") {
+    const isAuthor = post.author.toString() === req.user.id;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: "Access denied" });
     }
     Object.assign(post, req.body);
