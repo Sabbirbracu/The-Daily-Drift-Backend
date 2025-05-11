@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
   reputation: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
   posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+  suspended: { type: Boolean, default: false }, 
   createdAt: { type: Date, default: Date.now },
 });
 
