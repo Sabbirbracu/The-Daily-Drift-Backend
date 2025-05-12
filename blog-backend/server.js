@@ -14,7 +14,7 @@ console.log("JWT_SECRET:", process.env.JWT_SECRET ? "Defined" : "Undefined");
 
 const app = express();
 
-// Global MongoDB connection (this happens only once when server starts)
+// Global MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected globally..."))
@@ -26,9 +26,22 @@ mongoose
 app.use(express.json());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 app.use(cookieParser());
+
+// ✅ Updated CORS: allow both local and deployed frontend
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://the-daily-drift.vercel.app",
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -45,7 +58,7 @@ if (!process.env.MONGO_URI) {
   process.exit(1);
 }
 
-// Use rootRouter (the routes should no longer need connectDB or closeDB)
+// Use rootRouter for API routes
 rootRouter(app);
 
 const PORT = process.env.PORT || 5000;
