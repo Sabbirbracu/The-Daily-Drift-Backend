@@ -18,7 +18,6 @@ router.post("/", auth(["user", "admin"]), async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
-  }
 });
 
 // Get approved posts for Home Page (Public Access)
@@ -36,9 +35,7 @@ router.get("/publicPosts", async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-  }
 });
-
 
 // Get posts (dynamic: all, approved, pending, declined)
 router.get("/", auth(["admin", "user"]), async (req, res) => {
@@ -71,7 +68,6 @@ router.get("/ownPost", auth(["user", "admin"]), async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-  }
 });
 
 // Get a single post by ID and increment views
@@ -87,7 +83,6 @@ router.get("/:id", async (req, res) => {
     res.json(post);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
   }
 });
 
@@ -109,7 +104,6 @@ router.post("/:id/like", auth(), async (req, res) => {
     res.json(post);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
   }
 });
 
@@ -141,11 +135,10 @@ router.post("/:id/poll/:pollId/vote", auth(), async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
-  }
 });
 
 // Update a post
-router.put("/:id", auth(["admin", "user"]), async (req, res) => {
+router.put("/:id", auth(), async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
@@ -163,11 +156,10 @@ router.put("/:id", auth(["admin", "user"]), async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
-  }
 });
 
 // Delete a post
-router.delete("/:id", auth(["admin", "user"]), async (req, res) => {
+router.delete("/:id", auth(), async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
