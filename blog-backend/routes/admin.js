@@ -51,7 +51,7 @@ router.put("/comments/:id/suspend", auth(["admin"]), async (req, res) => {
 });
 
 // Get all users
-router.get("/users", auth(["admin"]), async (req, res) => {
+router.get("/users", async (req, res) => {
   try {
     const users = await User.find({}, "-password");
     res.json(users);

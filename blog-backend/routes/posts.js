@@ -13,6 +13,10 @@ router.post("/", auth(["user", "admin"]), async (req, res) => {
       status: "pending",
     });
     await post.save();
+    // Add post ID to user's posts
+    await User.findByIdAndUpdate(req.user.id, {
+      $push: { posts: post._id },
+    });
     await Analytic.create({ post: post._id });
     res.status(201).json(post);
   } catch (error) {
@@ -63,8 +67,11 @@ router.get("/", auth(["admin", "user"]), async (req, res) => {
 // Get posts created by the current user
 router.get("/ownPost", auth(["user", "admin"]), async (req, res) => {
   try {
-    const posts = await Post.find({ author: req.user.id }).populate("author", "name");
-    res.json(posts.length ? posts : { message: "No posts found for this user" });
+    const posts = await Post.find({ author: req.user.id }).populate(
+      "author",
+      "name"
+    );
+    res.json(posts);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -94,13 +101,16 @@ router.post("/:id/like", auth(), async (req, res) => {
 
     const userId = req.user.id;
     if (post.likes.includes(userId)) {
-      post.likes = post.likes.filter(id => id.toString() !== userId);
+      post.likes = post.likes.filter((id) => id.toString() !== userId);
     } else {
       post.likes.push(userId);
     }
 
     await post.save();
-    await Analytic.findOneAndUpdate({ post: post._id }, { likes: post.likes.length });
+    await Analytic.findOneAndUpdate(
+      { post: post._id },
+      { likes: post.likes.length }
+    );
     res.json(post);
   } catch (error) {
     res.status(500).json({ message: error.message });

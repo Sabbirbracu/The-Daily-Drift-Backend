@@ -9,10 +9,43 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   try {
     console.log("Connected to MongoDB");
-    const { email, password, userName } = req.body;
-    const user = new User({ email, password, userName });
-    await user.save();
-    res.status(201).json({ message: "User registered. Please verify email." });
+
+    const { email, password, fullName } = req.body;
+
+    // Basic validation
+    if (!email || !password || !fullName) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Extract first name (lowercased)
+    const baseName = fullName.split(" ")[0].toLowerCase();
+    let displayName = `@${baseName}`;
+
+    // Check if that displayName is already taken
+    let isTaken = await User.findOne({ displayName });
+    let counter = 1;
+
+    // Make it unique: @sakib, @sakib1, @sakib2 ...
+    while (isTaken) {
+      displayName = `@${baseName}${counter}`;
+      isTaken = await User.findOne({ displayName });
+      counter++;
+    }
+
+    // Create new user
+    const newUser = new User({
+      email,
+      password,
+      fullName,
+      displayName,
+    });
+
+    await newUser.save();
+
+    res.status(201).json({
+      message: "User registered successfully. Please verify your email.",
+      displayName: newUser.displayName,
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
