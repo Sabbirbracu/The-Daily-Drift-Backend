@@ -7,6 +7,10 @@ const pollSchema = new mongoose.Schema({
 
 const postSchema = new mongoose.Schema({
   title: { type: String, required: true },
+  metaTitle: { type: String }, // ✅ SEO Meta Title
+  metaDescription: { type: String }, // ✅ SEO Meta Description
+  tags: [{ type: String }], // ✅ Array of tags
+
   content: { type: String, required: true },
   author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   category: { type: String, required: true },
@@ -19,8 +23,8 @@ const postSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["pending", "approved", "declined"],
-    default: "pending"
-  }
+    default: "pending",
+  },
 });
 
 module.exports = mongoose.model("Post", postSchema);

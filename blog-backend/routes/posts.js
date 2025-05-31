@@ -3,21 +3,22 @@ const router = express.Router();
 const Post = require("../models/Post");
 const Analytic = require("../models/Analytic");
 const auth = require("../middleware/auth");
+const User = require("../models/User"); // adjust path if needed
 
 // Create a post
 router.post("/", auth(["user", "admin"]), async (req, res) => {
   try {
+    // Create new post from request body and set author and default status
     const post = new Post({
       ...req.body,
       author: req.user.id,
       status: "pending",
     });
     await post.save();
-    // Add post ID to user's posts
-    await User.findByIdAndUpdate(req.user.id, {
-      $push: { posts: post._id },
-    });
+
+    // Create initial analytics record for this post
     await Analytic.create({ post: post._id });
+
     res.status(201).json(post);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -30,34 +31,46 @@ router.get("/publicPosts", async (req, res) => {
     const { search = "" } = req.query;
     const query = { status: "approved" };
 
+    // Case-insensitive search on post title if search term provided
     if (search) {
       query.title = { $regex: search, $options: "i" };
     }
 
-    const posts = await Post.find(query).populate("author", "name");
+    // Populate author displayName and profileImage for frontend display
+    const posts = await Post.find(query).populate(
+      "author",
+      "displayName profileImage"
+    );
+
     res.json(posts);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Get posts (dynamic: all, approved, pending, declined)
+// Get posts (dynamic filtering based on status and user role)
 router.get("/", auth(["admin", "user"]), async (req, res) => {
   try {
     const { search = "", status } = req.query;
     const query = {};
 
+    // If status specified, filter by it; otherwise normal users get only approved posts
     if (status) {
       query.status = status; // e.g., "pending", "approved", "declined"
     } else if (req.user.role !== "admin") {
-      query.status = "approved"; // default for normal users
+      query.status = "approved";
     }
 
+    // Search by title if search term provided
     if (search) {
       query.title = { $regex: search, $options: "i" };
     }
 
-    const posts = await Post.find(query).populate("author", "name");
+    const posts = await Post.find(query).populate(
+      "author",
+      "displayName profileImage"
+    );
+
     res.json(posts);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -67,9 +80,10 @@ router.get("/", auth(["admin", "user"]), async (req, res) => {
 // Get posts created by the current user
 router.get("/ownPost", auth(["user", "admin"]), async (req, res) => {
   try {
+    // Query posts with author equal to current user id
     const posts = await Post.find({ author: req.user.id }).populate(
       "author",
-      "name"
+      "displayName profileImage"
     );
     res.json(posts);
   } catch (error) {
@@ -80,11 +94,17 @@ router.get("/ownPost", auth(["user", "admin"]), async (req, res) => {
 // Get a single post by ID and increment views
 router.get("/:id", async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate("author", "name");
+    const post = await Post.findById(req.params.id).populate(
+      "author",
+      "displayName profileImage"
+    );
     if (!post) return res.status(404).json({ message: "Post not found" });
 
+    // Increment views count and save
     post.views += 1;
     await post.save();
+
+    // Update Analytic document views count (increment by 1)
     await Analytic.findOneAndUpdate({ post: post._id }, { $inc: { views: 1 } });
 
     res.json(post);
@@ -100,6 +120,7 @@ router.post("/:id/like", auth(), async (req, res) => {
     if (!post) return res.status(404).json({ message: "Post not found" });
 
     const userId = req.user.id;
+    // Toggle like status for the user
     if (post.likes.includes(userId)) {
       post.likes = post.likes.filter((id) => id.toString() !== userId);
     } else {
@@ -107,10 +128,13 @@ router.post("/:id/like", auth(), async (req, res) => {
     }
 
     await post.save();
+
+    // Sync likes count in analytics collection
     await Analytic.findOneAndUpdate(
       { post: post._id },
       { likes: post.likes.length }
     );
+
     res.json(post);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -139,6 +163,15 @@ router.post("/:id/poll/:pollId/vote", auth(), async (req, res) => {
     const poll = post.polls.id(req.params.pollId);
     if (!poll) return res.status(404).json({ message: "Poll not found" });
 
+    // Validate optionIndex existence to avoid runtime error
+    if (
+      optionIndex === undefined ||
+      optionIndex < 0 ||
+      optionIndex >= poll.options.length
+    ) {
+      return res.status(400).json({ message: "Invalid option index" });
+    }
+
     poll.options[optionIndex].votes += 1;
     await post.save();
     res.json(poll);
@@ -156,6 +189,7 @@ router.put("/:id", auth(), async (req, res) => {
     const isAuthor = post.author.toString() === req.user.id;
     const isAdmin = req.user.role === "admin";
 
+    // Only author or admin can update
     if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: "Access denied" });
     }
@@ -177,10 +211,18 @@ router.delete("/:id", auth(), async (req, res) => {
     const isAuthor = post.author.toString() === req.user.id;
     const isAdmin = req.user.role === "admin";
 
+    // Only author or admin can delete
     if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    // Remove post reference from user's posts array (if you have this array)
+    // NOTE: Your User model does not currently have a posts array, so this might do nothing
+    await User.findByIdAndUpdate(post.author, {
+      $pull: { posts: post._id },
+    });
+
+    // Delete the post and associated analytics
     await Post.deleteOne({ _id: post._id });
     await Analytic.deleteOne({ post: post._id });
 
@@ -190,7 +232,7 @@ router.delete("/:id", auth(), async (req, res) => {
   }
 });
 
-// Approve a post
+// Approve a post (Admin only)
 router.patch("/:id/approve", auth(["admin"]), async (req, res) => {
   try {
     const post = await Post.findByIdAndUpdate(
@@ -204,7 +246,7 @@ router.patch("/:id/approve", auth(["admin"]), async (req, res) => {
   }
 });
 
-// Decline a post
+// Decline a post (Admin only)
 router.patch("/:id/decline", auth(["admin"]), async (req, res) => {
   try {
     const post = await Post.findByIdAndUpdate(
