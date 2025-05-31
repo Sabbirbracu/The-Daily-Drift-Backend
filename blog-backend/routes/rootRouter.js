@@ -6,6 +6,7 @@ const analyticRoutes = require("./analytics");
 const adminRoutes = require("./admin");
 const newsletterRoutes = require("./newsletter");
 const adminStatsRoutes = require("./adminStats");
+const categoryRoutes = require("./category"); // Assuming you have a category route
 
 const rootRouter = (app) => {
   app.use("/api/auth", authRoutes);
@@ -16,8 +17,8 @@ const rootRouter = (app) => {
   app.use("/api/admin", adminRoutes);
   app.use("/api/newsletter", newsletterRoutes);
   app.use("/api/admin/stats", adminStatsRoutes);
-  app.use("/api/newsletter", newsletterRoutes); 
-
+  app.use("/api/newsletter", newsletterRoutes);
+  app.use("/api/categories", categoryRoutes);
 };
 
 module.exports = rootRouter;
