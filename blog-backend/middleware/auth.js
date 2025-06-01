@@ -1,17 +1,23 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
 const auth = (roles = []) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const token = req.header("Authorization")?.replace("Bearer ", "");
     if (!token) return res.status(401).json({ message: "No token provided" });
 
     try {
-      console.log(process.env.JWT_SECRET, "jwt secret");
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded;
-      if (roles.length && !roles.includes(decoded.role)) {
+
+      const user = await User.findById(decoded.id).select("-password"); // Fetch full user
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      req.user = user;
+
+      if (roles.length && !roles.includes(user.role)) {
         return res.status(403).json({ message: "Access denied" });
       }
+
       next();
     } catch (error) {
       console.log(error);
