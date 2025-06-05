@@ -50,8 +50,8 @@ router.put("/comments/:id/suspend", auth(["admin"]), async (req, res) => {
   }
 });
 
-// Get all users
-router.get("/users", async (req, res) => {
+// // Get all users
+router.get("/users", auth(["admin"]), async (req, res) => {
   try {
     const users = await User.find({}, "-password");
     res.json(users);
@@ -59,6 +59,7 @@ router.get("/users", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // PUT /api/users/:id/make-admin
 router.put("/users/:id/make-admin", auth(["admin"]), async (req, res) => {
@@ -95,7 +96,6 @@ router.put("/users/:id/make-user", auth(["admin"]), async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 // Unsuspend a post
 router.put("/posts/:id/unsuspend", auth(["admin"]), async (req, res) => {
@@ -141,6 +141,5 @@ router.put("/users/:id/unsuspend", auth(["admin"]), async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
-
 
 module.exports = router;

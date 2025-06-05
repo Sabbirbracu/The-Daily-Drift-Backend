@@ -181,7 +181,8 @@ router.post("/:id/poll/:pollId/vote", auth(), async (req, res) => {
 });
 
 // Update a post
-router.put("/:id", auth(), async (req, res) => {
+// PUT /api/posts/:id
+router.put("/:id", auth(["admin", "user"]), async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
@@ -189,15 +190,33 @@ router.put("/:id", auth(), async (req, res) => {
     const isAuthor = post.author.toString() === req.user.id;
     const isAdmin = req.user.role === "admin";
 
-    // Only author or admin can update
     if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: "Access denied" });
     }
 
-    Object.assign(post, req.body);
+    const updatableFields = [
+      "title",
+      "metaTitle",
+      "metaDescription",
+      "tags",
+      "content",
+      "category",
+      "image",
+      "polls",
+      "status", // ✅ allow changing status in admin/editor dashboard
+    ];
+
+    // Clean update object
+    for (const field of updatableFields) {
+      if (req.body[field] !== undefined) {
+        post[field] = req.body[field];
+      }
+    }
+
     await post.save();
-    res.json(post);
+    res.status(200).json(post);
   } catch (error) {
+    console.error("Post update error:", error);
     res.status(400).json({ message: error.message });
   }
 });
