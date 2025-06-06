@@ -23,10 +23,10 @@ router.get("/:postId", async (req, res) => {
       post: postId,
       parentComment: null,
     })
-      .populate("author", "name profileImage")
+      .populate("author", "displayName profileImage")
       .populate({
         path: "reactions.user",
-        select: "name profileImage",
+        select: "displayName profileImage",
       });
 
     const replies = await Comment.find({
@@ -220,5 +220,7 @@ router.delete("/:id", auth(), async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+
 
 module.exports = router;

@@ -5,8 +5,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
 
-  fullName: { type: String, required: true }, // New field, editable
-  displayName: { type: String, required: true, unique: true }, // Auto-generated, immutable
+  fullName: { type: String, required: true },
+  displayName: { type: String, required: true, unique: true },
 
   dob: { type: Date },
   gender: { type: String },
@@ -32,9 +32,13 @@ const userSchema = new mongoose.Schema({
   level: { type: Number, default: 1 },
   suspended: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
+
+  // 🔐 Password reset fields
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 });
 
-// Hash password before save
+// 🔐 Hash password before saving
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
