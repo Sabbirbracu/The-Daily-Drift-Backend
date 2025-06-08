@@ -2,13 +2,48 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const UserProfile = require("../models/userProfile"); // ✅ update the path as needed
 
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 
 const router = express.Router();
 
+// // Register
+// router.post("/register", async (req, res) => {
+//   try {
+//     const { email, password, fullName } = req.body;
+
+//     if (!email || !password || !fullName) {
+//       return res.status(400).json({ message: "All fields are required." });
+//     }
+
+//     // Auto-generate unique display name
+//     const baseName = fullName.split(" ")[0].toLowerCase();
+//     let displayName = `@${baseName}`;
+//     let isTaken = await User.findOne({ displayName });
+//     let counter = 1;
+
+//     while (isTaken) {
+//       displayName = `@${baseName}${counter}`;
+//       isTaken = await User.findOne({ displayName });
+//       counter++;
+//     }
+
+//     const newUser = new User({ email, password, fullName, displayName });
+//     await newUser.save();
+
+//     res.status(201).json({
+//       message: "User registered successfully. Please verify your email.",
+//       displayName: newUser.displayName,
+//     });
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// });
+
 // Register
+// Register route
 router.post("/register", async (req, res) => {
   try {
     const { email, password, fullName } = req.body;
@@ -29,8 +64,15 @@ router.post("/register", async (req, res) => {
       counter++;
     }
 
+    // Create User
     const newUser = new User({ email, password, fullName, displayName });
     await newUser.save();
+
+    // 🔹 Create associated UserProfile
+    await UserProfile.create({
+      user: newUser._id,
+      // Other fields are already covered by defaults in the schema
+    });
 
     res.status(201).json({
       message: "User registered successfully. Please verify your email.",

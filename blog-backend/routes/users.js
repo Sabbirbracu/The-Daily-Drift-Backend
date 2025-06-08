@@ -146,6 +146,10 @@ router.post("/:displayName/follow", auth(), async (req, res) => {
 
     const userToFollow = await UserProfile.findOne({ user: targetUser._id });
     const currentUser = await UserProfile.findOne({ user: req.user.id });
+    console.log("Follow attempt by:", req.user.id);
+    console.log("Target user displayName:", displayName);
+    const profile = await UserProfile.findOne({ user: req.user.id });
+    console.log("Logged in user's profile:", profile);
 
     if (!userToFollow || !currentUser)
       return res.status(404).json({ message: "Profile not found" });
@@ -153,8 +157,10 @@ router.post("/:displayName/follow", auth(), async (req, res) => {
     if (userToFollow.followers.includes(req.user.id))
       return res.status(400).json({ message: "Already following" });
 
+
     userToFollow.followers.push(req.user.id);
     currentUser.following.push(targetUser._id);
+
 
     await Promise.all([userToFollow.save(), currentUser.save()]);
 
