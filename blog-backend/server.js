@@ -29,7 +29,7 @@ app.use(cookieParser());
 // Allow both local and deployed frontend
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://the-daily-drift-frontend.vercel.app",
+  "https://thedailydrift.qullia.com",
 ];
 
 app.use(
